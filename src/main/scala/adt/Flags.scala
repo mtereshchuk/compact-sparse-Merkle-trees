@@ -1,4 +1,4 @@
-package utils
+package adt
 
 object Flags extends Enumeration {
   type Flags = Value
