@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
-import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static model.utils.Direction.LEFT;
 import static model.utils.Direction.RIGHT;
@@ -38,7 +37,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     BinaryOperator<H> nodeHashFunction;
 
     @Override
-    public void insert(int key, @Nullable V value) {
+    public void insert(int key, @NotNull V value) {
         try {
             root = (root == null
                     ? createNode(key, value)
@@ -47,7 +46,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @NotNull
-    private Node<H> doInsert(@NotNull Node<H> node, int key, @Nullable V value) throws KeyExistsException {
+    private Node<H> doInsert(@NotNull Node<H> node, int key, @NotNull V value) throws KeyExistsException {
         if (node instanceof LeafNode) {
             if (key == node.getKey()) {
                 throw new KeyExistsException();
@@ -164,6 +163,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             }
 
             if (leftBound == null) {
+                //noinspection ConstantConditions
                 return new NonMembershipProof<>(null, findProof((InnerNode<H>) root, rightBound));
             }
 
@@ -217,6 +217,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
 
 
             val proof = result.getFirst();
+            //noinspection ConstantConditions
             proof.add(new MembershipProof.Entry<>(sibling.getHash(), direction.reverse()));
             return Pair.of(proof, result.getSecond());
         }
@@ -311,7 +312,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         }
     }
 
-    public static int distance(int key1, int key2) {
+    private static int distance(int key1, int key2) {
         return log2(key1 ^ key2);
     }
 
@@ -322,7 +323,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @NotNull
-    private Node<H> createNode(int key, @Nullable V value) {
+    private Node<H> createNode(int key, @NotNull V value) {
         return new LeafNode<>(key, value, leafHashFunction.apply(value));
     }
 
