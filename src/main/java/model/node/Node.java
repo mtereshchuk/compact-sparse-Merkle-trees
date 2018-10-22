@@ -4,9 +4,11 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigInteger;
+
 @Value
 @NonFinal
 public class Node<H> {
-    int key;
+    BigInteger key;
     @NotNull H hash;
 }

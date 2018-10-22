@@ -1,11 +1,11 @@
 package model;
 
+import com.google.common.math.BigIntegerMath;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.val;
-import lombok.var;
 import model.exceptions.KeyExistsException;
 import model.exceptions.NoSuchKeyException;
 import model.node.InnerNode;
@@ -19,13 +19,13 @@ import model.utils.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
-import static java.lang.Math.min;
 import static model.utils.Direction.LEFT;
 import static model.utils.Direction.RIGHT;
 
@@ -37,7 +37,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     BinaryOperator<H> nodeHashFunction;
 
     @Override
-    public void insert(int key, @NotNull V value) {
+    public void insert(BigInteger key, @NotNull V value) {
         try {
             root = (root == null
                     ? createNode(key, value)
@@ -46,14 +46,14 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @NotNull
-    private Node<H> doInsert(@NotNull Node<H> node, int key, @NotNull V value) throws KeyExistsException {
+    private Node<H> doInsert(@NotNull Node<H> node, BigInteger key, @NotNull V value) throws KeyExistsException {
         if (node instanceof LeafNode) {
-            if (key == node.getKey()) {
+            if (key.equals(node.getKey())) {
                 throw new KeyExistsException();
             }
 
             val newLeaf = createNode(key, value);
-            return key < node.getKey()
+            return key.compareTo(node.getKey()) < 0
                     ? createNode(newLeaf, node)
                     : createNode(node, newLeaf);
         } else {
@@ -63,27 +63,27 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             val leftDistance = distance(key, left.getKey());
             val rightDistance = distance(key, right.getKey());
 
-            if (leftDistance == rightDistance) {
+            if (leftDistance.equals(rightDistance)) {
                 val newLeaf = createNode(key, value);
-                val minKey = min(left.getKey(), right.getKey());
+                val minKey = left.getKey().min(right.getKey());
 
-                return key < minKey
+                return key.compareTo(minKey) < 0
                         ? createNode(newLeaf, node)
                         : createNode(node, newLeaf);
             }
 
-            return leftDistance < rightDistance
+            return leftDistance.compareTo(rightDistance) < 0
                     ? createNode(doInsert(left, key, value), right)
                     : createNode(left, doInsert(right, key, value));
         }
     }
 
     @Override
-    public void remove(int key) {
+    public void remove(BigInteger key) {
         if (root == null) return;
 
         if (root instanceof LeafNode) {
-            if (key == root.getKey()) {
+            if (key.equals(root.getKey())) {
                 root = null;
             }
         } else {
@@ -94,26 +94,26 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @NotNull
-    private Node<H> doRemove(@NotNull InnerNode<H> node, int key) throws NoSuchKeyException {
+    private Node<H> doRemove(@NotNull InnerNode<H> node, BigInteger key) throws NoSuchKeyException {
         val left = node.getLeft();
         val right = node.getRight();
 
-        if (left instanceof LeafNode && key == left.getKey()) {
+        if (left instanceof LeafNode && key.equals(left.getKey())) {
             return right;
         }
 
-        if (right instanceof  LeafNode && key == right.getKey()) {
+        if (right instanceof  LeafNode && key.equals(right.getKey())) {
             return left;
         }
 
         val leftDistance = distance(key, left.getKey());
         val rightDistance = distance(key, right.getKey());
 
-        if (leftDistance == rightDistance) {
+        if (leftDistance.equals(rightDistance)) {
             throw new NoSuchKeyException();
         }
 
-        if (leftDistance < rightDistance) {
+        if (leftDistance.compareTo(rightDistance) < 0) {
             if (left instanceof  LeafNode) {
                 throw new NoSuchKeyException();
             }
@@ -121,7 +121,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         }
 
         //noinspection ConstantConditions
-        if (leftDistance > rightDistance) {
+        if (leftDistance.compareTo(rightDistance) > 0) {
             if (right instanceof LeafNode) {
                 throw new NoSuchKeyException();
             }
@@ -133,7 +133,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
 
     @NotNull
     @Override
-    public Proof<V, H> getProof(int key) {
+    public Proof<V, H> getProof(BigInteger key) {
         if (root == null) {
             return new NonMembershipProof<>(null, null);
         } else
@@ -141,11 +141,11 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         if (root instanceof LeafNode) {
             val rootProof = new MembershipProof<V, H>((LeafNode<V, H>) root, Collections.emptyList());
 
-            if (key == root.getKey()) {
+            if (key.equals(root.getKey())) {
                 return rootProof;
             }
 
-            return key < root.getKey()
+            return key.compareTo(root.getKey()) < 0
                     ? new NonMembershipProof<>(null, rootProof)
                     : new NonMembershipProof<>(rootProof, null);
         } else {
@@ -172,14 +172,14 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @NotNull
-    private MembershipProof<V, H> findProof(@NotNull InnerNode<H> root, int key) {
+    private MembershipProof<V, H> findProof(@NotNull InnerNode<H> root, BigInteger key) {
         val left = root.getLeft();
         val right = root.getRight();
 
         val leftDistance = distance(key, left.getKey());
         val rightDistance = distance(key, right.getKey());
 
-        val result = leftDistance < rightDistance
+        val result = leftDistance.compareTo(rightDistance) < 0
                 ? findProof(right, LEFT, left, key)
                 : findProof(left, RIGHT, right, key);
 
@@ -191,7 +191,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             @NotNull Node<H> sibling,
             @NotNull Direction direction,
             @NotNull Node<H> node,
-            int key
+            BigInteger key
     ) {
         if (node instanceof LeafNode) {
             //noinspection ArraysAsListWithZeroOrOneArgument
@@ -211,7 +211,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             val leftDistance = distance(key, left.getKey());
             val rightDistance = distance(key, right.getKey());
 
-            val result = leftDistance < rightDistance
+            val result = leftDistance.compareTo(rightDistance) < 0
                     ? findProof(right, LEFT, left, key)
                     : findProof(left, RIGHT, right, key);
 
@@ -224,33 +224,33 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @NotNull
-    private Pair<Integer, Integer> findBounds(@NotNull InnerNode<H> root, int key) {
+    private Pair<BigInteger, BigInteger> findBounds(@NotNull InnerNode<H> root, BigInteger key) {
         val left = root.getLeft();
         val right = root.getRight();
 
         val leftDistance = distance(key, left.getKey());
         val rightDistance = distance(key, right.getKey());
 
-        if (leftDistance == rightDistance) {
-            return key > root.getKey()
+        if (leftDistance.equals(rightDistance)) {
+            return key.compareTo(root.getKey()) > 0
                     ? Pair.of(right.getKey(), null)
                     : Pair.of(null, left.getKey());
         }
 
-        return leftDistance < rightDistance
+        return leftDistance.compareTo(rightDistance) < 0
                 ? findBounds(right, LEFT, left, key)
                 : findBounds(left, RIGHT, right, key);
     }
 
     @NotNull
-    private Pair<Integer, Integer> findBounds(
+    private Pair<BigInteger, BigInteger> findBounds(
             @NotNull Node<H> sibling,
             @NotNull Direction direction,
             @NotNull Node<H> node,
-            int key
+            BigInteger key
     ) {
         if (node instanceof LeafNode) {
-            return key == node.getKey()
+            return key.equals(node.getKey())
                     ? Pair.of(key, key)
                     : findBounds(key, node.getKey(), direction, sibling);
         } else {
@@ -260,11 +260,11 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             val leftDistance = distance(key, left.getKey());
             val rightDistance = distance(key, right.getKey());
 
-            if (leftDistance == rightDistance) {
+            if (leftDistance.equals(rightDistance)) {
                 return findBounds(key, node.getKey(), direction, sibling);
             }
 
-            val result = leftDistance < rightDistance
+            val result = leftDistance.compareTo(rightDistance) < 0
                     ? findBounds(right, LEFT, left, key)
                     : findBounds(left, RIGHT, right, key);
 
@@ -281,30 +281,30 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @NotNull
-    private Pair<Integer, Integer> findBounds(
-            int key,
-            int nodeKey,
+    private Pair<BigInteger, BigInteger> findBounds(
+            BigInteger key,
+            BigInteger nodeKey,
             @NotNull Direction direction,
             @NotNull Node<H> sibling
     ) {
-        if (key > nodeKey && direction == LEFT) {
+        if (key.compareTo(nodeKey) > 0 && direction == LEFT) {
             return Pair.of(nodeKey, minInSubtree(sibling));
         }
-        if (key > nodeKey && direction == RIGHT) {
+        if (key.compareTo(nodeKey) > 0 && direction == RIGHT) {
             return Pair.of(nodeKey, null);
         }
-        if (key <= nodeKey && direction == LEFT) {
+        if (key.compareTo(nodeKey) <= 0 && direction == LEFT) {
             return Pair.of(null, nodeKey);
         } else {
             return Pair.of(maxInSubtree(sibling), nodeKey);
         }
     }
 
-    private int maxInSubtree(@NotNull Node<H> node) {
+    private BigInteger maxInSubtree(@NotNull Node<H> node) {
         return node.getKey();
     }
 
-    private int minInSubtree(@NotNull Node<H> node) {
+    private BigInteger minInSubtree(@NotNull Node<H> node) {
         if (node instanceof LeafNode) {
             return node.getKey();
         } else {
@@ -312,18 +312,19 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         }
     }
 
-    private static int distance(int key1, int key2) {
-        return log2(key1 ^ key2);
+    private static BigInteger distance(BigInteger key1, BigInteger key2) {
+        return log2(key1.xor(key2));
     }
 
-    private static int log2(int x) {
-        var i = 0;
-        while ((1 << i) <= x) i++;
-        return i;
+    private static BigInteger log2(BigInteger x) {
+        if (x.equals(BigInteger.ZERO)) {
+            return BigInteger.ZERO;
+        }
+        return BigIntegerMath.ceilingPowerOfTwo(x);
     }
 
     @NotNull
-    private Node<H> createNode(int key, @NotNull V value) {
+    private Node<H> createNode(BigInteger key, @NotNull V value) {
         return new LeafNode<>(key, value, leafHashFunction.apply(value));
     }
 
