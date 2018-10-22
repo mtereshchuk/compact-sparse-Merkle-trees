@@ -9,6 +9,6 @@ import java.math.BigInteger;
 @Value
 @NonFinal
 public class Node<H> {
-    BigInteger key;
+    @NotNull BigInteger key;
     @NotNull H hash;
 }
