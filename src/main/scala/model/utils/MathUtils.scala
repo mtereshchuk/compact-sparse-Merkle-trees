@@ -1,4 +1,4 @@
-package utils
+package model.utils
 
 object MathUtils {
   protected val LOG2: Double = math.log(2.0)

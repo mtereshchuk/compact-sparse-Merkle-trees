@@ -1,7 +1,7 @@
-import exceptions.{KeyExistsException, NoSuchKeyException}
-import utils.{Node, TreeUtils}
-import adt.Flags._
-import adt._
+import model.Flags._
+import model.adt._
+import model.exceptions.{KeyExistsException, NoSuchKeyException}
+import model.utils.{Node, TreeUtils}
 
 import scala.util.Random
 

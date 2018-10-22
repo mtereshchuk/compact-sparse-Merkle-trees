@@ -1,4 +1,4 @@
-package utils
+package model.utils
 
 object TreeUtils {
 
@@ -6,7 +6,7 @@ object TreeUtils {
 
   def makeNode(key: BigInt, value: String, hash: String, left: Node, right: Node): Node = Node(key, value, hash, left, right)
 
-  def makeNode(left: Node, right: Node): Node = makeNode(BigInt(left.key.max(right.key).toString()), "utils.Node", HashingUtils.countHash(left.hash, right.hash), left, right)
+  def makeNode(left: Node, right: Node): Node = makeNode(BigInt(left.key.max(right.key).toString()), "model.utils.Node", HashingUtils.countHash(left.hash, right.hash), left, right)
 
   def distance(x: BigInt, y: BigInt): Int = if ((x ^ y) == 0) -1 else (MathUtils.logBigInt(x ^ y) / MathUtils.logBigInt(2)).toInt + 1
 

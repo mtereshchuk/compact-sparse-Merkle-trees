@@ -1,4 +1,4 @@
-package adt
+package model
 
 object Flags extends Enumeration {
   type Flags = Value

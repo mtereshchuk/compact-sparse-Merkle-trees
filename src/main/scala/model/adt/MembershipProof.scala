@@ -1,6 +1,6 @@
-package adt
+package model.adt
 
-import adt.Flags.Flags
+import model.Flags.Flags
 
 case class ProofResult(result: Map[String, String]) extends MembershipProof
 case class NoProofList(list: List[MembershipProof]) extends MembershipProof

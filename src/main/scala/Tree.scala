@@ -1,4 +1,4 @@
-import utils.{Node, TreeUtils}
+import model.utils.{Node, TreeUtils}
 
 class Tree {
   var root: Node = _
