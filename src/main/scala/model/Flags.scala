@@ -1,4 +1,4 @@
-package utils
+package model
 
 object Flags extends Enumeration {
   type Flags = Value

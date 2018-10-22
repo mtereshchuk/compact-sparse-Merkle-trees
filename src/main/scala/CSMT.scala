@@ -1,16 +1,25 @@
-import exceptions.{KeyExistsException, NoSuchKeyException}
-import utils.{Node, TreeUtils}
-import utils.Flags._
+import model.Flags._
+import model.adt._
+import model.exceptions.{KeyExistsException, NoSuchKeyException}
+import model.utils.{Node, TreeUtils}
+
+import scala.util.Random
 
 object Main extends App {
   val tree = new Tree
   val big = BigInt("36893488147419103232")
-  tree.insert(big, "BIG")
-  tree.insert(5, "Egor")
-  tree.insert(1, "MOM")
-  tree.insert(6, "Gleb")
-
-  println(tree.getProof(big))
+  for (i <- 1 to 1000) {
+    val big = BigInt(i)
+    tree.insert(big, Random.alphanumeric.take(10).mkString)
+  }
+  for (i <- 1 to 1000) {
+    val big = BigInt(i)
+    println(tree.getProof(big))
+  }
+  for (i <- 1000 to 2000) {
+    val big = BigInt(i)
+    println(tree.getProof(big))
+  }
 }
 
 object CSMT {
@@ -52,21 +61,21 @@ object CSMT {
     }
   }
 
-  def getProof(root: Node, k: BigInt): Any = {
+  def getProof(root: Node, k: BigInt): MembershipProof = {
     val result = getProofImpl(root, k)
     result match {
-      case (a, b) :: tail =>
+      case ProofPairList((a, b) :: tail) =>
         val (value, hash) :: proof = ((a, b) :: tail).reverse
-        Map("key" -> k, "value" -> value, "hash" -> hash, "proof" -> proof)
-      case List(key, MINRS) => List(getProof(root, key.toString.toInt), null)
-      case List(MAXLS, key) => List(null, getProof(root, key.toString.toInt))
-      case List(key1, key2) => List(getProof(root, key1.toString.toInt), getProof(root, key2.toString.toInt))
+        ProofResult(Map("key" -> k.toString(), "value" -> value, "hash" -> hash, "proof" -> proof.toString()))
+      case IntFlagNoProof(key, MINRS) => NoProofList(List(getProof(root, key.toString.toInt), null))
+      case FlagIntNoProof(MAXLS, key) => NoProofList(List(null, getProof(root, key.toString.toInt)))
+      case IntIntNoProof(key1, key2) => NoProofList(List(getProof(root, key1.toString.toInt), getProof(root, key2.toString.toInt)))
 
     }
   }
 
-  def getProofImpl(root: Node, k: BigInt): List[Any] = root match {
-    case Node(key, value, hash, null, null) => List((null, null), (value, root.hash))
+  def getProofImpl(root: Node, k: BigInt): MembershipProof = root match {
+    case Node(key, value, hash, null, null) => ProofPairList(List((null, null), (value, root.hash)))
     case _ =>
       val left = root.left
       val right = root.right
@@ -75,18 +84,18 @@ object CSMT {
       cmp match {
         case 0 =>
           if (k > root.key)
-            List(right.key, MINRS)
+            IntFlagNoProof(right.key, MINRS)
           else
-            List(MAXLS, left.key)
+            FlagIntNoProof(MAXLS, left.key)
         case c if c < 0 => getProofImpl(right, "L", left, k)
         case c if c > 0 => getProofImpl(left, "R", right, k)
       }
   }
 
-  def getProofImpl(sibling: Node, direction: String, root: Node, k: BigInt): List[Any] = root match {
+  def getProofImpl(sibling: Node, direction: String, root: Node, k: BigInt): MembershipProof = root match {
     case Node(key, value, hash, null, null) =>
       if (key == k)
-        List((sibling.hash, reverse(direction)), (value, root.hash))
+        ProofPairList(List((sibling.hash, reverse(direction)), (value, root.hash)))
       else
         nonMemberShipProof(k, key, direction, sibling)
     case _ =>
@@ -105,19 +114,19 @@ object CSMT {
       }
   }
 
-  def resultDirectionMatcher(result: List[Any], direction: String, sibling: Node, k: BigInt): List[Any] = (result, direction) match {
-    case ((a, b) :: tail, _) => (sibling.hash, reverse(direction)) :: (a, b) :: tail
-    case (List(key, MINRS), "L") => List(key, minInSubtree(sibling))
-    case (List(MAXLS, key), "R") => List(maxInSubtree(sibling), key)
+  def resultDirectionMatcher(result: MembershipProof, direction: String, sibling: Node, k: BigInt): MembershipProof = (result, direction) match {
+    case (ProofPairList((a, b) :: tail), _) => ProofPairList((sibling.hash, reverse(direction)) :: (a, b) :: tail)
+    case (IntFlagNoProof(key, MINRS), "L") => IntIntNoProof(key, minInSubtree(sibling))
+    case (FlagIntNoProof(MAXLS, key), "R") => IntIntNoProof(maxInSubtree(sibling), key)
     case _ => result
   }
 
-  def nonMemberShipProof(k: BigInt, key: BigInt, direction: String, sibling: Node): List[Any] = {
+  def nonMemberShipProof(k: BigInt, key: BigInt, direction: String, sibling: Node): MembershipProof = {
     List(k > key, direction) match {
-      case List(true, "L") => List(key, minInSubtree(sibling))
-      case List(true, "R") => List(key, MINRS)
-      case List(false, "L") => List(MAXLS, key)
-      case List(false, "R") => List(maxInSubtree(sibling), key)
+      case List(true, "L") => IntIntNoProof(key,minInSubtree(sibling))
+      case List(true, "R") => IntFlagNoProof(key, MINRS)
+      case List(false, "L") => FlagIntNoProof(MAXLS, key)
+      case List(false, "R") => IntIntNoProof(maxInSubtree(sibling), key)
     }
   }
 

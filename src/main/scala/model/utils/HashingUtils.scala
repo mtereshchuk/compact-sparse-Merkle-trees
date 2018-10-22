@@ -1,4 +1,4 @@
-package utils
+package model.utils
 
 import java.security.MessageDigest
 import java.util.Base64
