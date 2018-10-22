@@ -1,12 +1,14 @@
 package model.node;
 
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
 
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Value
 public class LeafNode<V, H> extends Node<H> {
     @NotNull V value;

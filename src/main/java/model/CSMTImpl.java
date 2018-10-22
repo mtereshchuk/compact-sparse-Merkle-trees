@@ -1,21 +1,11 @@
 package model;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
-import lombok.val;
-import model.exceptions.KeyExistsException;
-import model.exceptions.NoSuchKeyException;
-import model.node.InnerNode;
-import model.node.LeafNode;
-import model.node.Node;
-import model.proof.MembershipProof;
-import model.proof.NonMembershipProof;
-import model.proof.Proof;
-import model.utils.Direction;
-import model.utils.Pair;
-import model.utils.Utils;
+import lombok.*;
+import lombok.experimental.*;
+import model.exceptions.*;
+import model.node.*;
+import model.proof.*;
+import model.utils.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,8 +16,7 @@ import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
-import static model.utils.Direction.LEFT;
-import static model.utils.Direction.RIGHT;
+import static model.utils.Direction.*;
 import static model.utils.Utils.distance;
 
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
