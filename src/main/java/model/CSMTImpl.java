@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.*;
 import model.exceptions.*;
 import model.node.*;
+import model.node.Node;
 import model.proof.*;
 import model.utils.*;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +23,8 @@ import static model.utils.Utils.distance;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class CSMTImpl<V, H> implements CSMT<V, H> {
-    @Nullable @NonFinal Node<H> root;
+    @Nullable @NonFinal
+    Node<H> root;
     @NotNull Function<V, H> leafHashFunction;
     @NotNull BinaryOperator<H> nodeHashFunction;
 
