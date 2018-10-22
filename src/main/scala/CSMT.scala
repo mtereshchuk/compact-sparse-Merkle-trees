@@ -1,20 +1,19 @@
 import exceptions.{KeyExistsException, NoSuchKeyException}
 import utils.{Node, TreeUtils}
+import utils.Flags._
 
 object Main extends App {
   val tree = new Tree
   val big = BigInt("36893488147419103232")
-  tree.insert(5, "Egor")
-  tree.insert(6, "Gleb")
-  tree.insert(1, "MOM")
   tree.insert(big, "BIG")
+  tree.insert(5, "Egor")
+  tree.insert(1, "MOM")
+  tree.insert(6, "Gleb")
+
   println(tree.getProof(big))
 }
 
 object CSMT {
-
-  private val MINRS = "MINRS"
-  private val MAXLS = "MAXLS"
 
   def insert(root: Node, k: BigInt, v: String): Node = root match {
     case Node(_, _, _, null, null) =>
@@ -59,14 +58,14 @@ object CSMT {
       case (a, b) :: tail =>
         val (value, hash) :: proof = ((a, b) :: tail).reverse
         Map("key" -> k, "value" -> value, "hash" -> hash, "proof" -> proof)
-      case List(key, "MINRS") => List(getProof(root, key.toString.toInt), null)
-      case List("MAXLS", key) => List(null, getProof(root, key.toString.toInt))
+      case List(key, MINRS) => List(getProof(root, key.toString.toInt), null)
+      case List(MAXLS, key) => List(null, getProof(root, key.toString.toInt))
       case List(key1, key2) => List(getProof(root, key1.toString.toInt), getProof(root, key2.toString.toInt))
 
     }
   }
 
-  def getProofImpl(root: Node, k: BigInt): Any = root match {
+  def getProofImpl(root: Node, k: BigInt): List[Any] = root match {
     case Node(key, value, hash, null, null) => List((null, null), (value, root.hash))
     case _ =>
       val left = root.left
@@ -108,8 +107,8 @@ object CSMT {
 
   def resultDirectionMatcher(result: List[Any], direction: String, sibling: Node, k: BigInt): List[Any] = (result, direction) match {
     case ((a, b) :: tail, _) => (sibling.hash, reverse(direction)) :: (a, b) :: tail
-    case (List(key, "MINRS"), "L") => List(key, minInSubtree(sibling))
-    case (List("MAXLS", key), "R") => List(maxInSubtree(sibling), key)
+    case (List(key, MINRS), "L") => List(key, minInSubtree(sibling))
+    case (List(MAXLS, key), "R") => List(maxInSubtree(sibling), key)
     case _ => result
   }
 
@@ -135,7 +134,7 @@ object CSMT {
     case s => s
   }
 
-  def delete(root: Node, k:BigInt):Node = {
+  def delete(root: Node, k: BigInt): Node = {
     var left = root.left
     var right = root.right
     if (checkForLeaf(left, right, k))
@@ -149,11 +148,11 @@ object CSMT {
           left match {
             case Node(_, _, _, null, null) => throw new NoSuchKeyException
             case _ =>
-              left = delete(left,k)
+              left = delete(left, k)
               TreeUtils.makeNode(left, right)
           }
         case c if c > 0 =>
-          right match  {
+          right match {
             case Node(_, _, _, null, null) => throw new NoSuchKeyException
             case _ =>
               right = delete(right, k)
@@ -163,7 +162,7 @@ object CSMT {
     }
   }
 
-  def checkForLeaf(left: Node, right: Node, k: BigInt):Boolean = (left.left == null && left.right == null && left.key == k) ||
+  def checkForLeaf(left: Node, right: Node, k: BigInt): Boolean = (left.left == null && left.right == null && left.key == k) ||
     (right.left == null && right.right == null && right.key == k)
 
 }
