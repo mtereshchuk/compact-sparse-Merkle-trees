@@ -1,6 +1,5 @@
 package model;
 
-import com.google.common.math.BigIntegerMath;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -16,11 +15,15 @@ import model.proof.NonMembershipProof;
 import model.proof.Proof;
 import model.utils.Direction;
 import model.utils.Pair;
+import model.utils.Utils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BinaryOperator;
@@ -28,16 +31,17 @@ import java.util.function.Function;
 
 import static model.utils.Direction.LEFT;
 import static model.utils.Direction.RIGHT;
+import static model.utils.Utils.distance;
 
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-@RequiredArgsConstructor(access = AccessLevel.PUBLIC)
+@RequiredArgsConstructor
 public class CSMTImpl<V, H> implements CSMT<V, H> {
     @Nullable @NonFinal Node<H> root;
-    Function<V, H> leafHashFunction;
-    BinaryOperator<H> nodeHashFunction;
+    @NotNull Function<V, H> leafHashFunction;
+    @NotNull BinaryOperator<H> nodeHashFunction;
 
     @Override
-    public void insert(BigInteger key, @NotNull V value) {
+    public void insert(@NotNull BigInteger key, @NotNull V value) {
         try {
             root = (root == null
                     ? createNode(key, value)
@@ -46,7 +50,11 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @NotNull
-    private Node<H> doInsert(@NotNull Node<H> node, BigInteger key, @NotNull V value) throws KeyExistsException {
+    private Node<H> doInsert(
+            @NotNull Node<H> node,
+            @NotNull BigInteger key,
+            @NotNull V value
+    ) throws KeyExistsException {
         if (node instanceof LeafNode) {
             if (key.equals(node.getKey())) {
                 throw new KeyExistsException();
@@ -79,7 +87,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @Override
-    public void remove(BigInteger key) {
+    public void remove(@NotNull BigInteger key) {
         if (root == null) return;
 
         if (root instanceof LeafNode) {
@@ -94,7 +102,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @NotNull
-    private Node<H> doRemove(@NotNull InnerNode<H> node, BigInteger key) throws NoSuchKeyException {
+    private Node<H> doRemove(@NotNull InnerNode<H> node, @NotNull BigInteger key) throws NoSuchKeyException {
         val left = node.getLeft();
         val right = node.getRight();
 
@@ -133,7 +141,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
 
     @NotNull
     @Override
-    public Proof<V, H> getProof(BigInteger key) {
+    public Proof<V, H> getProof(@NotNull BigInteger key) {
         if (root == null) {
             return new NonMembershipProof<>(null, null);
         } else
@@ -172,7 +180,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @NotNull
-    private MembershipProof<V, H> findProof(@NotNull InnerNode<H> root, BigInteger key) {
+    private MembershipProof<V, H> findProof(@NotNull InnerNode<H> root, @NotNull BigInteger key) {
         val left = root.getLeft();
         val right = root.getRight();
 
@@ -191,7 +199,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             @NotNull Node<H> sibling,
             @NotNull Direction direction,
             @NotNull Node<H> node,
-            BigInteger key
+            @NotNull BigInteger key
     ) {
         if (node instanceof LeafNode) {
             //noinspection ArraysAsListWithZeroOrOneArgument
@@ -224,7 +232,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     }
 
     @NotNull
-    private Pair<BigInteger, BigInteger> findBounds(@NotNull InnerNode<H> root, BigInteger key) {
+    private Pair<BigInteger, BigInteger> findBounds(@NotNull InnerNode<H> root, @NotNull BigInteger key) {
         val left = root.getLeft();
         val right = root.getRight();
 
@@ -247,7 +255,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             @NotNull Node<H> sibling,
             @NotNull Direction direction,
             @NotNull Node<H> node,
-            BigInteger key
+            @NotNull BigInteger key
     ) {
         if (node instanceof LeafNode) {
             return key.equals(node.getKey())
@@ -282,8 +290,8 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
 
     @NotNull
     private Pair<BigInteger, BigInteger> findBounds(
-            BigInteger key,
-            BigInteger nodeKey,
+            @NotNull BigInteger key,
+            @NotNull BigInteger nodeKey,
             @NotNull Direction direction,
             @NotNull Node<H> sibling
     ) {
@@ -300,10 +308,12 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         }
     }
 
+    @NotNull
     private BigInteger maxInSubtree(@NotNull Node<H> node) {
         return node.getKey();
     }
 
+    @NotNull
     private BigInteger minInSubtree(@NotNull Node<H> node) {
         if (node instanceof LeafNode) {
             return node.getKey();
@@ -312,24 +322,32 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         }
     }
 
-    private static BigInteger distance(BigInteger key1, BigInteger key2) {
-        return log2(key1.xor(key2));
-    }
-
-    private static BigInteger log2(BigInteger x) {
-        if (x.equals(BigInteger.ZERO)) {
-            return BigInteger.ZERO;
-        }
-        return BigIntegerMath.ceilingPowerOfTwo(x);
-    }
-
     @NotNull
-    private Node<H> createNode(BigInteger key, @NotNull V value) {
+    private Node<H> createNode(@NotNull BigInteger key, @NotNull V value) {
         return new LeafNode<>(key, value, leafHashFunction.apply(value));
     }
 
     @NotNull
     private Node<H> createNode(@NotNull Node<H> left, @NotNull Node<H> right) {
         return new InnerNode<>(nodeHashFunction.apply(left.getHash(), right.getHash()), left, right);
+    }
+
+    @NotNull
+    public static CSMTImpl<String, byte[]> createDefault() {
+        try {
+            val digest = MessageDigest.getInstance("SHA-256");
+
+            final Function<String, byte[]> leafHashFunction = (s) -> {
+                val valueBytes = Base64.getDecoder().decode(s);
+                return digest.digest(Utils.concatenate(new byte[] {0}, valueBytes));
+            };
+
+            final BinaryOperator<byte[]> hashFunction = (left, right) ->
+                    digest.digest(Utils.concatenate(new byte[] {1}, left, new byte[] {2}, right));
+
+            return new CSMTImpl<>(leafHashFunction, hashFunction);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException();
+        }
     }
 }

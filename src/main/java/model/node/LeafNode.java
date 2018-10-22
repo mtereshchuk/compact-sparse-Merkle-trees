@@ -11,7 +11,7 @@ import java.math.BigInteger;
 public class LeafNode<V, H> extends Node<H> {
     @NotNull V value;
 
-    public LeafNode(BigInteger key, @NotNull V value, @NotNull H hash) {
+    public LeafNode(@NotNull BigInteger key, @NotNull V value, @NotNull H hash) {
         super(key, hash);
         this.value = value;
     }
