@@ -22,10 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
@@ -71,7 +68,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             val leftDistance = distance(key, left.getKey());
             val rightDistance = distance(key, right.getKey());
 
-            if (leftDistance.equals(rightDistance)) {
+            if (leftDistance == rightDistance) {
                 val newLeaf = createNode(key, value);
                 val minKey = left.getKey().min(right.getKey());
 
@@ -80,7 +77,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
                         : createNode(node, newLeaf);
             }
 
-            return leftDistance.compareTo(rightDistance) < 0
+            return leftDistance < rightDistance
                     ? createNode(doInsert(left, key, value), right)
                     : createNode(left, doInsert(right, key, value));
         }
@@ -117,11 +114,11 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         val leftDistance = distance(key, left.getKey());
         val rightDistance = distance(key, right.getKey());
 
-        if (leftDistance.equals(rightDistance)) {
+        if (leftDistance == rightDistance) {
             throw new NoSuchKeyException();
         }
 
-        if (leftDistance.compareTo(rightDistance) < 0) {
+        if (leftDistance < rightDistance) {
             if (left instanceof  LeafNode) {
                 throw new NoSuchKeyException();
             }
@@ -129,7 +126,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         }
 
         //noinspection ConstantConditions
-        if (leftDistance.compareTo(rightDistance) > 0) {
+        if (leftDistance > rightDistance) {
             if (right instanceof LeafNode) {
                 throw new NoSuchKeyException();
             }
@@ -187,7 +184,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         val leftDistance = distance(key, left.getKey());
         val rightDistance = distance(key, right.getKey());
 
-        val result = leftDistance.compareTo(rightDistance) < 0
+        val result = leftDistance < rightDistance
                 ? findProof(right, LEFT, left, key)
                 : findProof(left, RIGHT, right, key);
 
@@ -204,12 +201,12 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         if (node instanceof LeafNode) {
             //noinspection ArraysAsListWithZeroOrOneArgument
             return Pair.of(
-                    Arrays.asList(
+                    new ArrayList<>(Arrays.asList(
                             new MembershipProof.Entry<>(
                                     sibling.getHash(),
                                     direction.reverse()
                             )
-                    ),
+                    )),
                     (LeafNode<V, H>) node
             );
         } else {
@@ -219,7 +216,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             val leftDistance = distance(key, left.getKey());
             val rightDistance = distance(key, right.getKey());
 
-            val result = leftDistance.compareTo(rightDistance) < 0
+            val result = leftDistance < rightDistance
                     ? findProof(right, LEFT, left, key)
                     : findProof(left, RIGHT, right, key);
 
@@ -239,13 +236,13 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         val leftDistance = distance(key, left.getKey());
         val rightDistance = distance(key, right.getKey());
 
-        if (leftDistance.equals(rightDistance)) {
+        if (leftDistance == rightDistance) {
             return key.compareTo(root.getKey()) > 0
                     ? Pair.of(right.getKey(), null)
                     : Pair.of(null, left.getKey());
         }
 
-        return leftDistance.compareTo(rightDistance) < 0
+        return leftDistance < rightDistance
                 ? findBounds(right, LEFT, left, key)
                 : findBounds(left, RIGHT, right, key);
     }
@@ -268,11 +265,11 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             val leftDistance = distance(key, left.getKey());
             val rightDistance = distance(key, right.getKey());
 
-            if (leftDistance.equals(rightDistance)) {
+            if (leftDistance == rightDistance) {
                 return findBounds(key, node.getKey(), direction, sibling);
             }
 
-            val result = leftDistance.compareTo(rightDistance) < 0
+            val result = leftDistance < rightDistance
                     ? findBounds(right, LEFT, left, key)
                     : findBounds(left, RIGHT, right, key);
 
