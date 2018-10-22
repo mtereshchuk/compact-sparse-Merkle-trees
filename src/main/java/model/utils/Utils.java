@@ -7,20 +7,19 @@ import lombok.var;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
 @UtilityClass
 public class Utils {
-    @NotNull
-    public static BigInteger distance(@NotNull BigInteger key1, @NotNull BigInteger key2) {
+    public static int distance(@NotNull BigInteger key1, @NotNull BigInteger key2) {
         return log2(key1.xor(key2));
     }
 
-    @NotNull
-    private static BigInteger log2(@NotNull BigInteger x) {
+    private static int log2(@NotNull BigInteger x) {
         if (x.equals(BigInteger.ZERO)) {
-            return BigInteger.ZERO;
+            return 0;
         }
-        return BigIntegerMath.ceilingPowerOfTwo(x);
+        return BigIntegerMath.log2(x, RoundingMode.FLOOR) + 1;
     }
 
     @NotNull
