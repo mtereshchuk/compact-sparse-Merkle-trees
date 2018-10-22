@@ -1,5 +1,4 @@
-import java.util.NoSuchElementException
-
+import exceptions.{KeyExistsException, NoSuchKeyException}
 import utils.{Node, TreeUtils}
 
 object Main extends App {
@@ -9,7 +8,7 @@ object Main extends App {
   tree.insert(6, "Gleb")
   tree.insert(1, "MOM")
   tree.insert(big, "BIG")
-  println(tree.root)
+  println(tree.getProof(big))
 }
 
 object CSMT {
@@ -46,7 +45,7 @@ object CSMT {
     val new_leaf = TreeUtils.makeNode(k, v)
     val cmp = k - leaf.key
     cmp match {
-      case c if c == 0 => null
+      case c if c == 0 => throw new KeyExistsException
       case c if c > 0 =>
         TreeUtils.makeNode(leaf, new_leaf)
       case c if c < 0 =>
@@ -145,13 +144,21 @@ object CSMT {
       val (l_dist, r_dist) = (TreeUtils.distance(k, left.key), TreeUtils.distance(k, right.key))
       val cmp = l_dist - r_dist
       cmp match {
-        case c if c == 0 => throw new NoSuchElementException
+        case c if c == 0 => throw new NoSuchKeyException
         case c if c < 0 =>
-          left = delete(left,k)
-          TreeUtils.makeNode(left, right)
+          left match {
+            case Node(_, _, _, null, null) => throw new NoSuchKeyException
+            case _ =>
+              left = delete(left,k)
+              TreeUtils.makeNode(left, right)
+          }
         case c if c > 0 =>
-          right = delete(right, k)
-          TreeUtils.makeNode(left, right)
+          right match  {
+            case Node(_, _, _, null, null) => throw new NoSuchKeyException
+            case _ =>
+              right = delete(right, k)
+              TreeUtils.makeNode(left, right)
+          }
       }
     }
   }
