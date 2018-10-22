@@ -141,7 +141,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     public Proof<V, H> getProof(@NotNull BigInteger key) {
         if (root == null) {
             return new NonMembershipProof<>(null, null);
-        } else
+        }
 
         if (root instanceof LeafNode) {
             val rootProof = new MembershipProof<V, H>((LeafNode<V, H>) root, Collections.emptyList());
@@ -159,20 +159,22 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             val leftBound = bounds.getFirst();
             val rightBound = bounds.getSecond();
 
+            val castedRoot = (InnerNode<H>) root;
+
             if (leftBound != null && leftBound.equals(rightBound)) {
-                return findProof((InnerNode<H>) root, leftBound);
+                return findProof(castedRoot, leftBound);
             }
 
             if (leftBound != null && rightBound != null) {
-                return new NonMembershipProof<>(findProof((InnerNode<H>) root, leftBound), findProof((InnerNode<H>) root, rightBound));
+                return new NonMembershipProof<>(findProof(castedRoot, leftBound), findProof(castedRoot, rightBound));
             }
 
             if (leftBound == null) {
                 //noinspection ConstantConditions
-                return new NonMembershipProof<>(null, findProof((InnerNode<H>) root, rightBound));
+                return new NonMembershipProof<>(null, findProof(castedRoot, rightBound));
             }
 
-            return new NonMembershipProof<>(findProof((InnerNode<H>) root, leftBound), null);
+            return new NonMembershipProof<>(findProof(castedRoot, leftBound), null);
         }
     }
 
