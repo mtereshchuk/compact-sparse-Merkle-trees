@@ -3,22 +3,11 @@ import model.adt._
 import model.exceptions.{KeyExistsException, NoSuchKeyException}
 import model.utils.{Node, TreeUtils}
 
-import scala.util.Random
-
 object Main extends App {
   val tree = new Tree
-  val big = BigInt("36893488147419103232")
-  for (i <- 1 to 1000) {
-    val big = BigInt(i)
-    tree.insert(big, Random.alphanumeric.take(10).mkString)
-  }
-  for (i <- 1 to 1000) {
-    val big = BigInt(i)
-    println(tree.getProof(big))
-  }
-  for (i <- 1000 to 2000) {
-    val big = BigInt(i)
-    println(tree.getProof(big))
+  for (i <- 1 to 1000000) {
+    tree.insert(i, "huk" + i)
+    println(i)
   }
 }
 
@@ -28,24 +17,22 @@ object CSMT {
     case Node(_, _, _, null, null) =>
       leaf_insert(root, k, v)
     case _ =>
-      var left = root.left
-      var right = root.right
+      val left = root.left
+      val right = root.right
       val (l_dist, r_dist) = (TreeUtils.distance(k, left.key), TreeUtils.distance(k, right.key))
       val cmp = l_dist - r_dist
       cmp match {
         case c if c == 0 =>
           val new_leaf = TreeUtils.makeNode(k, v)
-          val min_key = BigInt(left.key.min(right.key).toString())
+          val min_key = left.key.min(right.key)
           if (k < min_key)
             TreeUtils.makeNode(new_leaf, root)
           else
             TreeUtils.makeNode(root, new_leaf)
         case c if c < 0 =>
-          left = insert(left, k, v)
-          TreeUtils.makeNode(left, right)
-        case c if c > 0 =>
-          right = insert(right, k, v)
-          TreeUtils.makeNode(left, right)
+          TreeUtils.makeNode(insert(left, k, v), right)
+        case _ =>
+          TreeUtils.makeNode(left, insert(right, k, v))
       }
   }
 
@@ -56,7 +43,7 @@ object CSMT {
       case c if c == 0 => throw new KeyExistsException
       case c if c > 0 =>
         TreeUtils.makeNode(leaf, new_leaf)
-      case c if c < 0 =>
+      case _ =>
         TreeUtils.makeNode(new_leaf, leaf)
     }
   }
