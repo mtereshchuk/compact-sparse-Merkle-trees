@@ -5,9 +5,11 @@ import model.utils.{Node, TreeUtils}
 
 object Main extends App {
   val tree = new Tree
-  for (i <- 1 to 1000000) {
+  for (i <- 1 to 10) {
     tree.insert(i, "huk" + i)
-    println(i)
+  }
+  tree.getProof(4) match {
+    case ProofResult(key, value, hash, proof) => println(proof)
   }
 }
 
@@ -53,7 +55,7 @@ object CSMT {
     result match {
       case ProofPairList((a, b) :: tail) =>
         val (value, hash) :: proof = ((a, b) :: tail).reverse
-        ProofResult(Map("key" -> k.toString(), "value" -> value, "hash" -> hash, "proof" -> proof.toString()))
+        ProofResult(k, value, hash, proof)
       case IntFlagNoProof(key, MINRS) => NoProofList(List(getProof(root, key.toString.toInt), null))
       case FlagIntNoProof(MAXLS, key) => NoProofList(List(null, getProof(root, key.toString.toInt)))
       case IntIntNoProof(key1, key2) => NoProofList(List(getProof(root, key1.toString.toInt), getProof(root, key2.toString.toInt)))
