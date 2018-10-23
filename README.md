@@ -2,10 +2,10 @@
 This is Java and Scala implementation of [Compact Sparse Merkle trees](https://eprint.iacr.org/2018/955.pdf).
 Source [code](https://github.com/ZanjeerPlatform/csmt) of elixir implementation.
 
-##Presentation
+##  Presentation
 Explanation of algorithm in russian [here](https://docs.google.com/presentation/d/1iqQfiGt-56WUUiICj72P9kJhyaTxZBnv9ktJBVaoYv4/edit#slide=id.p).
 
-###Java implementation 
+### Java implementation 
 interface [CSMT](https://github.com/teremax/compact-sparse-Merkle-trees/blob/master/src/main/java/model/CSMT.java)
 
 ```java
@@ -20,7 +20,7 @@ public interface CSMT<V, H> {
 }
 ```
 
-###Scala implementation
+### Scala implementation
 [interface](https://github.com/teremax/compact-sparse-Merkle-trees/blob/master/src/main/scala/implementation/Tree.scala)
 
 ```scala
