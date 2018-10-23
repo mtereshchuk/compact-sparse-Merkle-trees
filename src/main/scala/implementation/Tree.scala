@@ -1,5 +1,7 @@
-import model.adt.MembershipProof
-import model.utils.{Node, TreeUtils}
+package implementation
+
+import implementation.adt.MembershipProof
+import implementation.utils.{Node, TreeUtils}
 
 class Tree {
   var root: Node = _
@@ -8,5 +10,5 @@ class Tree {
 
   def getProof(k:BigInt):MembershipProof = if (this.root == null) null else CSMT.getProof(root, k)
 
-  def delete(k:BigInt): Unit = if (this.root != null) CSMT.delete(root, k)
+  def delete(k:BigInt): Unit = if (this.root != null) root = CSMT.delete(root, k)
 }

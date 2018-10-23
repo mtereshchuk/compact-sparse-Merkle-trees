@@ -49,17 +49,8 @@ public class Converter {
     }
 
     public static String countHash(String left, String right) {
-        if (left.equals("null") && !right.equals("null")) {
-            byte[] bytes = encode(combine(ONE, TWO, decoderBase64.decode(right)));
-            return encoderBase64.encodeToString(bytes);
-        } else if (!left.equals("null") && right.equals("null")) {
-            byte[] bytes = encode(combine(ONE, decoderBase64.decode(left), TWO));
-            return encoderBase64.encodeToString(bytes);
-        } else if (!left.equals("null") && !right.equals("null")) {
-            byte[] bytes = encode(combine(ONE, decoderBase64.decode(left), TWO, decoderBase64.decode(right)));
-            return encoderBase64.encodeToString(bytes);
-        }
-        return "null";
+        byte[] bytes = encode(combine(ONE, decoderBase64.decode(left), TWO, decoderBase64.decode(right)));
+        return encoderBase64.encodeToString(bytes);
     }
 
     private static byte[] encode(byte[] bytes) {
