@@ -28,4 +28,5 @@ class CSMT {
   def insert(k: BigInt, v: String): Unit
   def getProof(k:BigInt): MembershipProof
   def delete(k:BigInt): Unit
+ }
 ```
