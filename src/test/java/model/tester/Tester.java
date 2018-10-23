@@ -116,7 +116,29 @@ public class Tester {
                 MembershipProof proofLeft = nonMembershipProof.getLeftBoundProof();
                 MembershipProof proofRight = nonMembershipProof.getRightBoundProof();
 
+                byte[] left = null;
+                for (int index = i - 1; index >= 0; index--) {
+                    if (test.hashes[0][index] != null) {
+                        left = test.hashes[0][index];
+                        break;
+                    }
+                }
 
+                if (left != null) {
+                    assertArrayEquals(left, (byte[]) proofLeft.getNode().getHash());
+                }
+
+                byte[] right = null;
+                for (int index = i; index != test.hashes[0].length; index++) {
+                    if (test.hashes[0][index] != null) {
+                        right = test.hashes[0][index];
+                        break;
+                    }
+                }
+
+                if (right != null) {
+                    assertArrayEquals(right, (byte[]) proofRight.getNode().getHash());
+                }
             }
         }
     }
