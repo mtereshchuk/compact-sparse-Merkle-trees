@@ -1,5 +1,9 @@
 package model.tester;
 
+import implementation.Tree;
+import implementation.adt.NoProofList;
+import implementation.adt.ProofResult;
+import lombok.var;
 import model.CSMT;
 import model.CSMTImpl;
 import model.TestUtils;
@@ -8,8 +12,12 @@ import model.proof.MembershipProof;
 import model.proof.NonMembershipProof;
 import model.proof.Proof;
 import org.junit.Test;
+import scala.Tuple2;
+import scala.collection.immutable.List;
+import scala.math.BigInt;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -37,6 +45,39 @@ public class Tester {
 
         checkProofs(test, tree);
     }
+
+    @Test
+    public void CSMTInsertTestScala() {
+        Tree tree = new Tree();
+        TestFactory.Test test = TestFactory.makeCSMTTest("abc", "cde", "efg", "ghi", "ijk");
+        for (int i = 0; i != test.input.length; i++) {
+            tree.insert(BigInt.apply(i), test.input[i]);
+        }
+        checkProof(test, tree);
+    }
+
+    private void checkProof(TestFactory.Test test, Tree tree) {
+        final int high = TestUtils.log2(test.input.length);
+        for (int i = 0; i != test.input.length; i++) {
+            implementation.adt.MembershipProof proof = tree.getProof(BigInt.apply(i));
+            if (proof instanceof ProofResult) {
+                ProofResult membershipProof = (ProofResult) proof;
+                assertArrayEquals(test.hashes[0][i], (byte[]) membershipProof.hash().getBytes());
+                int index = i;
+                scala.collection.Iterator proofIterator = membershipProof.proof().iterator();
+                for (int h = 0; h != high; h++) {
+                    int currIndex = index % 2 == 0 ? index + 1 : index - 1;
+                    byte[] testHash = test.hashes[h][currIndex];
+                    if (testHash != null) {
+                        byte[] currHash = (byte[]) ((Tuple2<String, String>) proofIterator.next())._1.getBytes();
+                        assertArrayEquals("at index=" + i + " at level: " + h, testHash, currHash);
+                    }
+                    index /= 2;
+                }
+            }
+        }
+    }
+
 
     @Test
     public void CSMTRemoveTest() {
