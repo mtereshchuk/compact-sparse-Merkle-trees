@@ -1,8 +1,5 @@
 package model;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
@@ -28,5 +25,4 @@ public final class TestUtils {
     public static int log2(final int x) {
         return (int) Math.ceil(Math.log(x) / Math.log(2));
     }
-
 }
