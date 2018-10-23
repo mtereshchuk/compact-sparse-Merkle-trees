@@ -13,19 +13,8 @@ object HashingUtils {
   val digest: MessageDigest = MessageDigest.getInstance("SHA-256")
 
   def countHash(left: String, right: String): String = {
-    if (left == "null" && !(right == "null")) {
-      val bytes = digest.digest(concatenateByteArrays(one, two, decoder.decode(right)))
-      return encoder.encodeToString(bytes)
-    }
-    else if (!(left == "null") && right == "null") {
-      val bytes = digest.digest(concatenateByteArrays(one, decoder.decode(left), two))
-      return encoder.encodeToString(bytes)
-    }
-    else if (!(left == "null") && !(right == "null")) {
-      val bytes = digest.digest(concatenateByteArrays(one, decoder.decode(left), two, decoder.decode(right)))
-      return encoder.encodeToString(bytes)
-    }
-    "null"
+    val bytes = digest.digest(concatenateByteArrays(one, decoder.decode(left), two, decoder.decode(right)))
+    encoder.encodeToString(bytes)
   }
 
   def countLeafHash(value:String):String = encoder.encodeToString(digest.digest(concatenateByteArrays(zero, value.getBytes())))
