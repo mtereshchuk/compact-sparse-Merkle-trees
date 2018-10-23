@@ -1,3 +1,5 @@
+package implementation
+
 import implementation.adt.MembershipProof
 import implementation.utils.{Node, TreeUtils}
 

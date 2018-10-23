@@ -1,3 +1,5 @@
+package implementation
+
 import implementation.Flags._
 import implementation.adt._
 import implementation.exceptions.{KeyAlreadyExistsException, NoSuchKeyException}
