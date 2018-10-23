@@ -10,7 +10,7 @@ import model.proof.Proof;
 import org.junit.Test;
 
 import java.math.BigInteger;
-import java.util.List;
+import java.util.Iterator;
 
 import static org.junit.Assert.assertArrayEquals;
 
@@ -18,19 +18,19 @@ public class Tester {
 
     @Test
     public void merkleTreeTest() {
-        TestFactory.Test test = TestFactory.getRandomTest(10);
+        TestFactory.Test test = TestFactory.getRandomMerkelTest(10);
         MerkleTree merkleTree = new MerkleTree(test.input);
 
         checkProofs(test, merkleTree);
     }
 
     @Test
-    public void CSMTTest() {
+    public void CSMTInsertTest() {
         CSMT<String, byte[]> tree = new CSMTImpl<>(
                 TestUtils.LEAF_HASH_FUNCTION,
                 TestUtils.NODE_HASH_FUNCTION);
 
-        TestFactory.Test test = TestFactory.getRandomTest(5);
+        TestFactory.Test test = TestFactory.makeCSMTTest("abc", "cde", "efg", "ghi", "ijk");
         for (int i = 0; i != test.input.length; i++) {
             tree.insert(BigInteger.valueOf(i), test.input[i]);
         }
@@ -39,12 +39,48 @@ public class Tester {
     }
 
     @Test
-    public void stressCSMTTest() {
+    public void CSMTRemoveTest() {
         CSMT<String, byte[]> tree = new CSMTImpl<>(
                 TestUtils.LEAF_HASH_FUNCTION,
                 TestUtils.NODE_HASH_FUNCTION);
 
-        TestFactory.Test test = TestFactory.getRandomTest(500_000);
+        TestFactory.Test test = TestFactory.makeCSMTTest("abc", "cde", "efg", "ghi", "ijk");
+        for (int i = 0; i != test.input.length; i++) {
+            tree.insert(BigInteger.valueOf(i), test.input[i]);
+        }
+
+        for (int i = 0; i != test.input.length; i++) {
+            test.remove(i);
+            tree.remove(BigInteger.valueOf(i));
+            checkProofs(test, tree);
+        }
+    }
+
+    @Test
+    public void stressRemoveSCMTTest() {
+        CSMT<String, byte[]> tree = new CSMTImpl<>(
+                TestUtils.LEAF_HASH_FUNCTION,
+                TestUtils.NODE_HASH_FUNCTION);
+
+        TestFactory.Test test = TestFactory.getRandomCSMTTest(50_000);
+        for (int i = 0; i != test.input.length; i++) {
+            tree.insert(BigInteger.valueOf(i), test.input[i]);
+        }
+
+        for (int i = 0; i != test.input.length; i++) {
+            test.remove(i);
+            tree.remove(BigInteger.valueOf(i));
+            checkProofs(test, tree);
+        }
+    }
+
+    @Test
+    public void stressInsertCSMTTest() {
+        CSMT<String, byte[]> tree = new CSMTImpl<>(
+                TestUtils.LEAF_HASH_FUNCTION,
+                TestUtils.NODE_HASH_FUNCTION);
+
+        TestFactory.Test test = TestFactory.getRandomCSMTTest(500_000);
         for (int i = 0; i != test.input.length; i++) {
             tree.insert(BigInteger.valueOf(i), test.input[i]);
         }
@@ -65,17 +101,22 @@ public class Tester {
                 assertArrayEquals(test.hashes[0][i], (byte[]) leaf.getHash());
 
                 int index = i;
-                List proofList = membershipProof.getProof();
-                byte[] currHash = (byte[]) ((MembershipProof.Entry) proofList.get(0)).getHash();
+                Iterator proofIterator = membershipProof.getProof().iterator();
                 for (int h = 0; h != high; h++) {
                     int currIndex = index % 2 == 0 ? index + 1 : index - 1;
-                    assertArrayEquals("at index=" + i + " at level: " + h,
-                            test.hashes[h][currIndex], currHash);
-                    currHash = (byte[]) ((MembershipProof.Entry) proofList.get(h + 1)).getHash();
+                    byte[] testHash = test.hashes[h][currIndex];
+                    if (testHash != null) {
+                        byte[] currHash = (byte[]) ((MembershipProof.Entry) proofIterator.next()).getHash();
+                        assertArrayEquals("at index=" + i + " at level: " + h, testHash, currHash);
+                    }
                     index /= 2;
                 }
             } else {
                 NonMembershipProof nonMembershipProof = (NonMembershipProof) proof;
+                MembershipProof proofLeft = nonMembershipProof.getLeftBoundProof();
+                MembershipProof proofRight = nonMembershipProof.getRightBoundProof();
+
+
             }
         }
     }
