@@ -1,4 +1,4 @@
-package model.utils
+package implementation.utils
 
 object MathUtils {
   val LOG2: Double = math.log(2.0)

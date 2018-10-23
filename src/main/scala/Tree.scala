@@ -1,5 +1,5 @@
-import model.adt.MembershipProof
-import model.utils.{Node, TreeUtils}
+import implementation.adt.MembershipProof
+import implementation.utils.{Node, TreeUtils}
 
 class Tree {
   var root: Node = _

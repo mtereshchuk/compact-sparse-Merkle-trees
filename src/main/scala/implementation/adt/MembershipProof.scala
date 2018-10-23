@@ -1,6 +1,6 @@
-package model.adt
+package implementation.adt
 
-import model.Flags.Flags
+import implementation.Flags.Flags
 
 case class ProofResult(key:BigInt, value:String, hash:String, proof:List[(String,String)]) extends MembershipProof
 case class NoProofList(list: List[MembershipProof]) extends MembershipProof

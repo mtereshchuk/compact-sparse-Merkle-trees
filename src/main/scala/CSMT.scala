@@ -1,7 +1,7 @@
-import model.Flags._
-import model.adt._
-import model.exceptions.{KeyExistsException, NoSuchKeyException}
-import model.utils.{Node, TreeUtils}
+import implementation.Flags._
+import implementation.adt._
+import implementation.exceptions.{KeyAlreadyExistsException, NoSuchKeyException}
+import implementation.utils.{Node, TreeUtils}
 
 object Main extends App {
   val tree = new Tree
@@ -42,7 +42,7 @@ object CSMT {
     val new_leaf = TreeUtils.makeNode(k, v)
     val cmp = k - leaf.key
     cmp match {
-      case c if c == 0 => throw new KeyExistsException
+      case c if c == 0 => throw new KeyAlreadyExistsException
       case c if c > 0 =>
         TreeUtils.makeNode(leaf, new_leaf)
       case _ =>
