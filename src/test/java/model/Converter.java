@@ -11,6 +11,7 @@ public final class Converter {
     private static final byte[] ZERO = new byte[]{0b00000000};
     private static final byte[] ONE = new byte[]{0b00000001};
     private static final byte[] TWO = new byte[]{0b00000010};
+    private static final byte[] EMPTY = {};
 
     private static MessageDigest digest;
     private static Base64.Encoder encoderBase64 = Base64.getEncoder();
@@ -49,8 +50,16 @@ public final class Converter {
     }
 
     public static String countHash(String left, String right) {
-        byte[] bytes = encode(combine(ONE, decoderBase64.decode(left), TWO, decoderBase64.decode(right)));
+        byte[] bytes = encode(combine(ONE, decodeBase64(left), TWO, decodeBase64(right)));
         return encoderBase64.encodeToString(bytes);
+    }
+
+    private static byte[] decodeBase64(String s) {
+        if (s == null) {
+            return EMPTY;
+        } else {
+            return decoderBase64.decode(s);
+        }
     }
 
     private static byte[] encode(byte[] bytes) {
