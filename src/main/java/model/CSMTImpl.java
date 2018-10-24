@@ -250,7 +250,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
         if (node instanceof LeafNode) {
             return key.equals(node.getKey())
                     ? Pair.of(key, key)
-                    : findBounds(key, node.getKey(), direction, sibling);
+                    : findBounds(key, node, direction, sibling);
         } else {
             val left = ((InnerNode<H>) node).getLeft();
             val right = ((InnerNode<H>) node).getRight();
@@ -259,7 +259,7 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
             val rightDistance = distance(key, right.getKey());
 
             if (leftDistance == rightDistance) {
-                return findBounds(key, node.getKey(), direction, sibling);
+                return findBounds(key, node, direction, sibling);
             }
 
             val result = leftDistance < rightDistance
@@ -281,20 +281,20 @@ public class CSMTImpl<V, H> implements CSMT<V, H> {
     @NotNull
     private Pair<BigInteger, BigInteger> findBounds(
             @NotNull BigInteger key,
-            @NotNull BigInteger nodeKey,
+            @NotNull Node<H> node,
             @NotNull Direction direction,
             @NotNull Node<H> sibling
     ) {
-        if (key.compareTo(nodeKey) > 0 && direction == LEFT) {
-            return Pair.of(nodeKey, minInSubtree(sibling));
+        if (key.compareTo(node.getKey()) > 0 && direction == LEFT) {
+            return Pair.of(node.getKey(), minInSubtree(sibling));
         }
-        if (key.compareTo(nodeKey) > 0 && direction == RIGHT) {
-            return Pair.of(nodeKey, null);
+        if (key.compareTo(node.getKey()) > 0 && direction == RIGHT) {
+            return Pair.of(node.getKey(), null);
         }
-        if (key.compareTo(nodeKey) <= 0 && direction == LEFT) {
-            return Pair.of(null, nodeKey);
+        if (key.compareTo(node.getKey()) <= 0 && direction == LEFT) {
+            return Pair.of(null, minInSubtree(node));
         } else {
-            return Pair.of(maxInSubtree(sibling), nodeKey);
+            return Pair.of(maxInSubtree(sibling), minInSubtree(node));
         }
     }
 
