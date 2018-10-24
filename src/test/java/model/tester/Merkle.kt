@@ -32,6 +32,16 @@ class Merkle<V, H>(private val high: Int, input: Array<V>,
         }
     }
 
+    fun countNulls(): Int {
+        var count = 0
+        nodes.forEach { _, value ->
+            if (value == null) {
+                count++
+            }
+        }
+        return count
+    }
+
     init {
         for (i in 0 until numberOfNodesInLevel.size) {
             numberOfNodesInLevel[i] = Math.pow(2.0, (high - i).toDouble()).toInt()
@@ -67,7 +77,7 @@ class Merkle<V, H>(private val high: Int, input: Array<V>,
                         hash1 = nodes[id - 1]
                     }
 
-                    val hashParent = nodeConverter.apply(hash1, hash2)!!
+                    val hashParent = nodeConverter.apply(hash1, hash2)
                     nodes[parent] = hashParent
                     nextIdes.add(parent)
                 }

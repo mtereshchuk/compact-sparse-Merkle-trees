@@ -88,7 +88,7 @@ public final class TestFactory {
         return levels;
     }
 
-    private static String getRandomString(final int length) {
+    public static String getRandomString(final int length) {
         StringBuilder builder = new StringBuilder(length);
         for (int i = 0; i != length; i++) {
             builder.append('a' + random.nextInt(26));
