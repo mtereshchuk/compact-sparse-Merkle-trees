@@ -140,14 +140,18 @@ public class Tester {
 
     @Test
     public void timeTest() {
-        for (int numberOfElements = 65000; numberOfElements < 530000; numberOfElements *= 2) {
-            TestFactory.Test test = TestFactory.getRandomMerkelTest(numberOfElements);
+        System.out.println("time test:");
+        for (int numberOfElements = 100_000; numberOfElements <= 800_000; numberOfElements *= 2) {
             BigInteger[] keys = new BigInteger[numberOfElements];
+            String[] input = new String[numberOfElements];
+            final int high = (int) Math.ceil(TestUtils.log2(
+                    TestUtils.toPow2(input.length))) + 1;
             for (int i = 0; i != numberOfElements; i++) {
                 keys[i] = BigInteger.valueOf(i);
+                input[i] = TestFactory.getRandomString(10);
             }
 
-            Merkle<String, byte[]> treeMerkle = new Merkle<>(test.hashes.length, test.input,
+            Merkle<String, byte[]> treeMerkle = new Merkle<>(high, input,
                     TestUtils.LEAF_HASH_FUNCTION,
                     TestUtils.NODE_HASH_FUNCTION);
 
@@ -160,14 +164,65 @@ public class Tester {
 
             CSMT<String, byte[]> treeCSMT = new CSMTImpl<>(TestUtils.LEAF_HASH_FUNCTION, TestUtils.NODE_HASH_FUNCTION);
             for (int i = 0; i != numberOfElements; i++) {
-                treeCSMT.insert(keys[i], test.input[i]);
+                treeCSMT.insert(keys[i], input[i]);
             }
+
             time = -System.currentTimeMillis();
             for (int i = 0; i != numberOfElements; i++) {
                 treeCSMT.getProof(keys[i]);
             }
             System.out.println(String.format("for %d elements CSMT: %d",
                     numberOfElements, System.currentTimeMillis() + time));
+            System.out.println();
+        }
+    }
+
+    @Test
+    public void KeyTimeTest() {
+        final int step = 50_000;
+        System.out.println("key time test step: " + step);
+        for (int count = 100_000; count < 6_000_000; count *= 2) {
+            BigInteger[] keys = new BigInteger[count];
+            String[] input = new String[count];
+            final int high = (int) Math.ceil(TestUtils.log2(
+                    TestUtils.toPow2(input.length))) + 1;
+
+            final int numberOfElements = count / step;
+            System.out.println(String.format("for %d input elements with step %d and %d operations",
+                    numberOfElements, step, numberOfElements * 10000));
+            for (int i = 0; i != count; i++) {
+                keys[i] = BigInteger.valueOf(i);
+                if (i % step == 0) {
+                    input[i] = TestFactory.getRandomString(7);
+                }
+            }
+
+            Merkle<String, byte[]> treeMerkle = new Merkle<>(high, input,
+                    TestUtils.LEAF_HASH_FUNCTION,
+                    TestUtils.NODE_HASH_FUNCTION);
+
+            long time = -System.currentTimeMillis();
+            for (int k = 0; k != 10000; k++) {
+                for (int i = 0; i < count; i += step) {
+                    treeMerkle.getProof(i);
+                }
+            }
+
+            System.out.println(String.format("Merkle tree has %d nulls, time: %d",
+                    treeMerkle.countNulls(), System.currentTimeMillis() + time));
+
+            CSMT<String, byte[]> treeCSMT = new CSMTImpl<>(TestUtils.LEAF_HASH_FUNCTION, TestUtils.NODE_HASH_FUNCTION);
+            for (int i = 0; i < count; i += step) {
+                treeCSMT.insert(keys[i], input[i]);
+            }
+            time = -System.currentTimeMillis();
+            for (int k = 0; k != 10000; k++) {
+                for (int i = 0; i < count; i += step) {
+                    treeCSMT.getProof(keys[i]);
+                }
+            }
+            System.out.println("CSMT time: " + (System.currentTimeMillis() + time));
+            System.out.println();
         }
     }
 }

@@ -6,7 +6,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
-public class Converter {
+public final class Converter {
 
     private static final byte[] ZERO = new byte[]{0b00000000};
     private static final byte[] ONE = new byte[]{0b00000001};
