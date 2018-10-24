@@ -7,11 +7,15 @@ import implementation.utils.{Node, TreeUtils}
 
 object Main extends App {
   val tree = new Tree
-  for (i <- 1 to 10) {
+  for (i <- 0 to 4) {
     tree.insert(i, "huk" + i)
   }
-  tree.getProof(4) match {
+  tree.delete(0)
+  tree.delete(1)
+  println(tree.root)
+  tree.getProof(0) match {
     case ProofResult(key, value, hash, proof) => println(proof)
+    case NoProofList(list) => println(list)
   }
 }
 
@@ -88,14 +92,14 @@ object CSMT {
       if (key == k)
         ProofPairList(List((sibling.hash, reverse(direction)), (value, root.hash)))
       else
-        nonMemberShipProof(k, key, direction, sibling)
+        nonMemberShipProof(k, root, direction, sibling)
     case _ =>
       val left = root.left
       val right = root.right
       val (l_dist, r_dist) = (TreeUtils.distance(k, left.key), TreeUtils.distance(k, right.key))
       val cmp = l_dist - r_dist
       cmp match {
-        case c if c == 0 => nonMemberShipProof(k, root.key, direction, sibling)
+        case c if c == 0 => nonMemberShipProof(k, root, direction, sibling)
         case c if c < 0 =>
           val result = getProofImpl(right, "L", left, k)
           resultDirectionMatcher(result, direction, sibling, k)
@@ -112,12 +116,12 @@ object CSMT {
     case _ => result
   }
 
-  def nonMemberShipProof(k: BigInt, key: BigInt, direction: String, sibling: Node): MembershipProof = {
-    List(k > key, direction) match {
-      case List(true, "L") => IntIntNoProof(key,minInSubtree(sibling))
-      case List(true, "R") => IntFlagNoProof(key, MINRS)
-      case List(false, "L") => FlagIntNoProof(MAXLS, key)
-      case List(false, "R") => IntIntNoProof(maxInSubtree(sibling), key)
+  def nonMemberShipProof(k: BigInt, root: Node, direction: String, sibling: Node): MembershipProof = {
+    List(k > root.key, direction) match {
+      case List(true, "L") => IntIntNoProof(root.key,minInSubtree(sibling))
+      case List(true, "R") => IntFlagNoProof(root.key, MINRS)
+      case List(false, "L") => FlagIntNoProof(MAXLS, minInSubtree(root))
+      case List(false, "R") => IntIntNoProof(maxInSubtree(sibling), minInSubtree(root))
     }
   }
 
