@@ -1,8 +1,8 @@
-package model.utils
+package implementation.utils
 
 object MathUtils {
-  protected val LOG2: Double = math.log(2.0)
-  protected val MAX_DIGITS_2 = 977
+  val LOG2: Double = math.log(2.0)
+  val MAX_DIGITS_2 = 977
 
   def logBigInt(value: BigInt): Double = {
     var curVal = value

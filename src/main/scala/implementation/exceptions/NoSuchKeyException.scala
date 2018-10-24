@@ -1,4 +1,5 @@
-package model.exceptions
+package implementation.exceptions
 
 class NoSuchKeyException extends Exception{
+
 }
